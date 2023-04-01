@@ -11,7 +11,7 @@ maintainers:
 
 properties:
   compatible:
-    const: loongarch,cpu-interrupt-controller
+    const: loongson,cpu-interrupt-controller
 
   '#interrupt-cells':
     const: 1
@@ -28,7 +28,7 @@ required:
 examples:
   - |
     interrupt-controller {
-      compatible = "loongarch,cpu-interrupt-controller";
+      compatible = "loongson,cpu-interrupt-controller";
       #interrupt-cells = <1>;
       interrupt-controller;
     };
