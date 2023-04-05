@@ -55,14 +55,6 @@
 
 #include <linux/ctype.h>
 
-struct annotation_options annotation__default_options = {
-	.use_offset     = true,
-	.jump_arrows    = true,
-	.annotate_src	= true,
-	.offset_level	= ANNOTATION__OFFSET_JUMP_TARGETS,
-	.percent_type	= PERCENT_PERIOD_LOCAL,
-};
-
 static regex_t	 file_lineno;
 
 static struct ins_ops *ins__find(struct arch *arch, const char *name);
@@ -1016,13 +1008,13 @@ int addr_map_symbol__account_cycles(struct addr_map_symbol *ams,
 	if (start &&
 		(start->ms.sym == ams->ms.sym ||
 		 (ams->ms.sym &&
-		   start->addr == ams->ms.sym->start + ams->ms.map->start)))
+		  start->addr == ams->ms.sym->start + map__start(ams->ms.map))))
 		saddr = start->al_addr;
 	if (saddr == 0)
 		pr_debug2("BB with bad start: addr %"PRIx64" start %"PRIx64" sym %"PRIx64" saddr %"PRIx64"\n",
 			ams->addr,
 			start ? start->addr : 0,
-			ams->ms.sym ? ams->ms.sym->start + ams->ms.map->start : 0,
+			ams->ms.sym ? ams->ms.sym->start + map__start(ams->ms.map) : 0,
 			saddr);
 	err = symbol__account_cycles(ams->al_addr, saddr, ams->ms.sym, cycles);
 	if (err)
@@ -1593,7 +1585,7 @@ static void delete_last_nop(struct symbol *sym)
 
 int symbol__strerror_disassemble(struct map_symbol *ms, int errnum, char *buf, size_t buflen)
 {
-	struct dso *dso = ms->map->dso;
+	struct dso *dso = map__dso(ms->map);
 
 	BUG_ON(buflen == 0);
 
@@ -1735,7 +1727,7 @@ static int symbol__disassemble_bpf(struct symbol *sym,
 	struct map *map = args->ms.map;
 	struct perf_bpil *info_linear;
 	struct disassemble_info info;
-	struct dso *dso = map->dso;
+	struct dso *dso = map__dso(map);
 	int pc = 0, count, sub_id;
 	struct btf *btf = NULL;
 	char tpath[PATH_MAX];
@@ -1958,7 +1950,7 @@ static int symbol__disassemble(struct symbol *sym, struct annotate_args *args)
 {
 	struct annotation_options *opts = args->options;
 	struct map *map = args->ms.map;
-	struct dso *dso = map->dso;
+	struct dso *dso = map__dso(map);
 	char *command;
 	FILE *file;
 	char symfs_filename[PATH_MAX];
@@ -2403,7 +2395,7 @@ int symbol__annotate_printf(struct map_symbol *ms, struct evsel *evsel,
 {
 	struct map *map = ms->map;
 	struct symbol *sym = ms->sym;
-	struct dso *dso = map->dso;
+	struct dso *dso = map__dso(map);
 	char *filename;
 	const char *d_filename;
 	const char *evsel_name = evsel__name(evsel);
@@ -2586,7 +2578,7 @@ int map_symbol__annotation_dump(struct map_symbol *ms, struct evsel *evsel,
 	}
 
 	fprintf(fp, "%s() %s\nEvent: %s\n\n",
-		ms->sym->name, ms->map->dso->long_name, ev_name);
+		ms->sym->name, map__dso(ms->map)->long_name, ev_name);
 	symbol__annotate_fprintf2(ms->sym, fp, opts);
 
 	fclose(fp);
@@ -2812,7 +2804,7 @@ static void annotation__calc_lines(struct annotation *notes, struct map *map,
 		if (percent_max <= 0.5)
 			continue;
 
-		al->path = get_srcline(map->dso, notes->start + al->offset, NULL,
+		al->path = get_srcline(map__dso(map), notes->start + al->offset, NULL,
 				       false, true, notes->start + al->offset);
 		insert_source_line(&tmp_root, al, opts);
 	}
@@ -2831,7 +2823,7 @@ static void symbol__calc_lines(struct map_symbol *ms, struct rb_root *root,
 int symbol__tty_annotate2(struct map_symbol *ms, struct evsel *evsel,
 			  struct annotation_options *opts)
 {
-	struct dso *dso = ms->map->dso;
+	struct dso *dso = map__dso(ms->map);
 	struct symbol *sym = ms->sym;
 	struct rb_root source_line = RB_ROOT;
 	struct hists *hists = evsel__hists(evsel);
@@ -2867,7 +2859,7 @@ int symbol__tty_annotate2(struct map_symbol *ms, struct evsel *evsel,
 int symbol__tty_annotate(struct map_symbol *ms, struct evsel *evsel,
 			 struct annotation_options *opts)
 {
-	struct dso *dso = ms->map->dso;
+	struct dso *dso = map__dso(ms->map);
 	struct symbol *sym = ms->sym;
 	struct rb_root source_line = RB_ROOT;
 	int err;
@@ -3214,7 +3206,23 @@ static int annotation__config(const char *var, const char *value, void *data)
 	} else if (!strcmp(var, "annotate.use_offset")) {
 		opt->use_offset = perf_config_bool("use_offset", value);
 	} else if (!strcmp(var, "annotate.disassembler_style")) {
-		opt->disassembler_style = value;
+		opt->disassembler_style = strdup(value);
+		if (!opt->disassembler_style) {
+			pr_err("Not enough memory for annotate.disassembler_style\n");
+			return -1;
+		}
+	} else if (!strcmp(var, "annotate.objdump")) {
+		opt->objdump_path = strdup(value);
+		if (!opt->objdump_path) {
+			pr_err("Not enough memory for annotate.objdump\n");
+			return -1;
+		}
+	} else if (!strcmp(var, "annotate.addr2line")) {
+		symbol_conf.addr2line_path = strdup(value);
+		if (!symbol_conf.addr2line_path) {
+			pr_err("Not enough memory for annotate.addr2line\n");
+			return -1;
+		}
 	} else if (!strcmp(var, "annotate.demangle")) {
 		symbol_conf.demangle = perf_config_bool("demangle", value);
 	} else if (!strcmp(var, "annotate.demangle_kernel")) {
@@ -3224,6 +3232,25 @@ static int annotation__config(const char *var, const char *value, void *data)
 	}
 
 	return 0;
+}
+
+void annotation_options__init(struct annotation_options *opt)
+{
+	memset(opt, 0, sizeof(*opt));
+
+	/* Default values. */
+	opt->use_offset = true;
+	opt->jump_arrows = true;
+	opt->annotate_src = true;
+	opt->offset_level = ANNOTATION__OFFSET_JUMP_TARGETS;
+	opt->percent_type = PERCENT_PERIOD_LOCAL;
+}
+
+
+void annotation_options__exit(struct annotation_options *opt)
+{
+	zfree(&opt->disassembler_style);
+	zfree(&opt->objdump_path);
 }
 
 void annotation_config__init(struct annotation_options *opt)

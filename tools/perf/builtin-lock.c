@@ -1323,10 +1323,10 @@ static void print_bad_events(int bad, int total)
 	for (i = 0; i < BROKEN_MAX; i++)
 		broken += bad_hist[i];
 
-	if (quiet || (broken == 0 && verbose <= 0))
+	if (quiet || total == 0 || (broken == 0 && verbose <= 0))
 		return;
 
-	pr_info("\n=== output for debug===\n\n");
+	pr_info("\n=== output for debug ===\n\n");
 	pr_info("bad: %d, total: %d\n", bad, total);
 	pr_info("bad rate: %.2f %%\n", (double)bad / (double)total * 100);
 	pr_info("histogram of events caused bad sequence\n");
@@ -1548,27 +1548,41 @@ static void sort_result(void)
 
 static const struct {
 	unsigned int flags;
+	const char *str;
 	const char *name;
 } lock_type_table[] = {
-	{ 0,				"semaphore" },
-	{ LCB_F_SPIN,			"spinlock" },
-	{ LCB_F_SPIN | LCB_F_READ,	"rwlock:R" },
-	{ LCB_F_SPIN | LCB_F_WRITE,	"rwlock:W"},
-	{ LCB_F_READ,			"rwsem:R" },
-	{ LCB_F_WRITE,			"rwsem:W" },
-	{ LCB_F_RT,			"rtmutex" },
-	{ LCB_F_RT | LCB_F_READ,	"rwlock-rt:R" },
-	{ LCB_F_RT | LCB_F_WRITE,	"rwlock-rt:W"},
-	{ LCB_F_PERCPU | LCB_F_READ,	"pcpu-sem:R" },
-	{ LCB_F_PERCPU | LCB_F_WRITE,	"pcpu-sem:W" },
-	{ LCB_F_MUTEX,			"mutex" },
-	{ LCB_F_MUTEX | LCB_F_SPIN,	"mutex" },
+	{ 0,				"semaphore",	"semaphore" },
+	{ LCB_F_SPIN,			"spinlock",	"spinlock" },
+	{ LCB_F_SPIN | LCB_F_READ,	"rwlock:R",	"rwlock" },
+	{ LCB_F_SPIN | LCB_F_WRITE,	"rwlock:W",	"rwlock" },
+	{ LCB_F_READ,			"rwsem:R",	"rwsem" },
+	{ LCB_F_WRITE,			"rwsem:W",	"rwsem" },
+	{ LCB_F_RT,			"rt=mutex",	"rt-mutex" },
+	{ LCB_F_RT | LCB_F_READ,	"rwlock-rt:R",	"rwlock-rt" },
+	{ LCB_F_RT | LCB_F_WRITE,	"rwlock-rt:W",	"rwlock-rt" },
+	{ LCB_F_PERCPU | LCB_F_READ,	"pcpu-sem:R",	"percpu-rwsem" },
+	{ LCB_F_PERCPU | LCB_F_WRITE,	"pcpu-sem:W",	"percpu-rwsem" },
+	{ LCB_F_MUTEX,			"mutex",	"mutex" },
+	{ LCB_F_MUTEX | LCB_F_SPIN,	"mutex",	"mutex" },
 	/* alias for get_type_flag() */
-	{ LCB_F_MUTEX | LCB_F_SPIN,	"mutex-spin" },
+	{ LCB_F_MUTEX | LCB_F_SPIN,	"mutex-spin",	"mutex" },
 };
 
 static const char *get_type_str(unsigned int flags)
 {
+	flags &= LCB_F_MAX_FLAGS - 1;
+
+	for (unsigned int i = 0; i < ARRAY_SIZE(lock_type_table); i++) {
+		if (lock_type_table[i].flags == flags)
+			return lock_type_table[i].str;
+	}
+	return "unknown";
+}
+
+static const char *get_type_name(unsigned int flags)
+{
+	flags &= LCB_F_MAX_FLAGS - 1;
+
 	for (unsigned int i = 0; i < ARRAY_SIZE(lock_type_table); i++) {
 		if (lock_type_table[i].flags == flags)
 			return lock_type_table[i].name;
@@ -1605,6 +1619,24 @@ static void sort_contention_result(void)
 	sort_result();
 }
 
+static void print_bpf_events(int total, struct lock_contention_fails *fails)
+{
+	/* Output for debug, this have to be removed */
+	int broken = fails->task + fails->stack + fails->time;
+
+	if (quiet || total == 0 || (broken == 0 && verbose <= 0))
+		return;
+
+	total += broken;
+	pr_info("\n=== output for debug ===\n\n");
+	pr_info("bad: %d, total: %d\n", broken, total);
+	pr_info("bad rate: %.2f %%\n", (double)broken / (double)total * 100);
+
+	pr_info("histogram of failure reasons\n");
+	pr_info(" %10s: %d\n", "task", fails->task);
+	pr_info(" %10s: %d\n", "stack", fails->stack);
+	pr_info(" %10s: %d\n", "time", fails->time);
+}
 static void print_contention_result(struct lock_contention *con)
 {
 	struct lock_stat *st;
@@ -1632,8 +1664,6 @@ static void print_contention_result(struct lock_contention *con)
 	}
 
 	bad = total = printed = 0;
-	if (use_bpf)
-		bad = bad_hist[BROKEN_CONTENDED];
 
 	while ((st = pop_from_result())) {
 		struct thread *t;
@@ -1662,8 +1692,8 @@ static void print_contention_result(struct lock_contention *con)
 				pid, pid == -1 ? "Unknown" : thread__comm_str(t));
 			break;
 		case LOCK_AGGR_ADDR:
-			pr_info("  %016llx   %s\n", (unsigned long long)st->addr,
-				st->name ? : "");
+			pr_info("  %016llx   %s (%s)\n", (unsigned long long)st->addr,
+				st->name, get_type_name(st->flags));
 			break;
 		default:
 			break;
@@ -1690,7 +1720,10 @@ static void print_contention_result(struct lock_contention *con)
 			break;
 	}
 
-	print_bad_events(bad, total);
+	if (use_bpf)
+		print_bpf_events(total, &con->fails);
+	else
+		print_bad_events(bad, total);
 }
 
 static bool force;
@@ -1917,9 +1950,6 @@ static int __cmd_contention(int argc, const char **argv)
 
 		lock_contention_stop();
 		lock_contention_read(&con);
-
-		/* abuse bad hist stats for lost entries */
-		bad_hist[BROKEN_CONTENDED] = con.lost;
 	} else {
 		err = perf_session__process_events(session);
 		if (err)
@@ -2371,7 +2401,7 @@ int cmd_lock(int argc, const char **argv)
 
 #ifndef HAVE_BPF_SKEL
 		set_option_nobuild(contention_options, 'b', "use-bpf",
-				   "no BUILD_BPF_SKEL=1", false);
+				   "NO_BPF_SKEL=1", false);
 #endif
 		if (argc) {
 			argc = parse_options(argc, argv, contention_options,

@@ -572,7 +572,7 @@ struct map *thread__find_map(struct thread *thread, u8 cpumode, u64 addr,
 			     struct addr_location *al)
 {
 	struct maps *maps = thread->maps;
-	struct machine *machine = maps->machine;
+	struct machine *machine = maps__machine(maps);
 	bool load_map = false;
 
 	al->maps = maps;
@@ -637,7 +637,7 @@ struct map *thread__find_map_fb(struct thread *thread, u8 cpumode, u64 addr,
 				struct addr_location *al)
 {
 	struct map *map = thread__find_map(thread, cpumode, addr, al);
-	struct machine *machine = thread->maps->machine;
+	struct machine *machine = maps__machine(thread->maps);
 	u8 addr_cpumode = machine__addr_cpumode(machine, cpumode, addr);
 
 	if (map || addr_cpumode == cpumode)
@@ -685,6 +685,7 @@ int machine__resolve(struct machine *machine, struct addr_location *al,
 		     struct perf_sample *sample)
 {
 	struct thread *thread;
+	struct dso *dso;
 
 	if (symbol_conf.guest_code && !machine__is_host(machine))
 		thread = machine__findnew_guest_code(machine, sample->pid);
@@ -695,9 +696,11 @@ int machine__resolve(struct machine *machine, struct addr_location *al,
 
 	dump_printf(" ... thread: %s:%d\n", thread__comm_str(thread), thread->tid);
 	thread__find_map(thread, sample->cpumode, sample->ip, al);
+	dso = al->map ? map__dso(al->map) : NULL;
 	dump_printf(" ...... dso: %s\n",
-		    al->map ? al->map->dso->long_name :
-			al->level == 'H' ? "[hypervisor]" : "<not found>");
+		dso
+		? dso->long_name
+		: (al->level == 'H' ? "[hypervisor]" : "<not found>"));
 
 	if (thread__is_filtered(thread))
 		al->filtered |= (1 << HIST_FILTER__THREAD);
@@ -715,8 +718,6 @@ int machine__resolve(struct machine *machine, struct addr_location *al,
 	}
 
 	if (al->map) {
-		struct dso *dso = al->map->dso;
-
 		if (symbol_conf.dso_list &&
 		    (!dso || !(strlist__has_entry(symbol_conf.dso_list,
 						  dso->short_name) ||

@@ -118,7 +118,8 @@ static int test__vmlinux_matches_kallsyms(struct test_suite *test __maybe_unused
 	int err = TEST_FAIL;
 	struct rb_node *nd;
 	struct symbol *sym;
-	struct map *kallsyms_map, *vmlinux_map, *map;
+	struct map *kallsyms_map, *vmlinux_map;
+	struct map_rb_node *rb_node;
 	struct machine kallsyms, vmlinux;
 	struct maps *maps;
 	u64 mem_start, mem_end;
@@ -266,7 +267,7 @@ next_pair:
 
 				continue;
 			}
-		} else if (mem_start == kallsyms.vmlinux_map->end) {
+		} else if (mem_start == map__end(kallsyms.vmlinux_map)) {
 			/*
 			 * Ignore aliases to _etext, i.e. to the end of the kernel text area,
 			 * such as __indirect_thunk_end.
@@ -290,17 +291,18 @@ next_pair:
 
 	header_printed = false;
 
-	maps__for_each_entry(maps, map) {
-		struct map *
+	maps__for_each_entry(maps, rb_node) {
+		struct map *map = rb_node->map;
+		struct dso *dso = map__dso(map);
 		/*
 		 * If it is the kernel, kallsyms is always "[kernel.kallsyms]", while
 		 * the kernel will have the path for the vmlinux file being used,
 		 * so use the short name, less descriptive but the same ("[kernel]" in
 		 * both cases.
 		 */
-		pair = maps__find_by_name(kallsyms.kmaps, (map->dso->kernel ?
-								map->dso->short_name :
-								map->dso->name));
+		struct map *pair = maps__find_by_name(kallsyms.kmaps, (dso->kernel ?
+								dso->short_name :
+								dso->name));
 		if (pair) {
 			pair->priv = 1;
 		} else {
@@ -314,28 +316,30 @@ next_pair:
 
 	header_printed = false;
 
-	maps__for_each_entry(maps, map) {
-		struct map *pair;
+	maps__for_each_entry(maps, rb_node) {
+		struct map *pair, *map = rb_node->map;
 
-		mem_start = vmlinux_map->unmap_ip(vmlinux_map, map->start);
-		mem_end = vmlinux_map->unmap_ip(vmlinux_map, map->end);
+		mem_start = vmlinux_map->unmap_ip(vmlinux_map, map__start(map));
+		mem_end = vmlinux_map->unmap_ip(vmlinux_map, map__end(map));
 
 		pair = maps__find(kallsyms.kmaps, mem_start);
 		if (pair == NULL || pair->priv)
 			continue;
 
-		if (pair->start == mem_start) {
+		if (map__start(pair) == mem_start) {
+			struct dso *dso = map__dso(map);
+
 			if (!header_printed) {
 				pr_info("WARN: Maps in vmlinux with a different name in kallsyms:\n");
 				header_printed = true;
 			}
 
 			pr_info("WARN: %" PRIx64 "-%" PRIx64 " %" PRIx64 " %s in kallsyms as",
-				map->start, map->end, map->pgoff, map->dso->name);
-			if (mem_end != pair->end)
+				map__start(map), map__end(map), map->pgoff, dso->name);
+			if (mem_end != map__end(pair))
 				pr_info(":\nWARN: *%" PRIx64 "-%" PRIx64 " %" PRIx64,
-					pair->start, pair->end, pair->pgoff);
-			pr_info(" %s\n", pair->dso->name);
+					map__start(pair), map__end(pair), pair->pgoff);
+			pr_info(" %s\n", dso->name);
 			pair->priv = 1;
 		}
 	}
@@ -344,7 +348,9 @@ next_pair:
 
 	maps = machine__kernel_maps(&kallsyms);
 
-	maps__for_each_entry(maps, map) {
+	maps__for_each_entry(maps, rb_node) {
+		struct map *map = rb_node->map;
+
 		if (!map->priv) {
 			if (!header_printed) {
 				pr_info("WARN: Maps only in kallsyms:\n");

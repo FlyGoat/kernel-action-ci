@@ -52,7 +52,7 @@ static int __report_module(struct addr_location *al, u64 ip,
 	thread__find_symbol(ui->thread, PERF_RECORD_MISC_USER, ip, al);
 
 	if (al->map)
-		dso = al->map->dso;
+		dso = map__dso(al->map);
 
 	if (!dso)
 		return 0;
@@ -62,19 +62,19 @@ static int __report_module(struct addr_location *al, u64 ip,
 		Dwarf_Addr s;
 
 		dwfl_module_info(mod, NULL, &s, NULL, NULL, NULL, NULL, NULL);
-		if (s != al->map->start - al->map->pgoff)
+		if (s != map__start(al->map) - al->map->pgoff)
 			mod = 0;
 	}
 
 	if (!mod)
 		mod = dwfl_report_elf(ui->dwfl, dso->short_name, dso->long_name, -1,
-				      al->map->start - al->map->pgoff, false);
+				      map__start(al->map) - al->map->pgoff, false);
 	if (!mod) {
 		char filename[PATH_MAX];
 
 		if (dso__build_id_filename(dso, filename, sizeof(filename), false))
 			mod = dwfl_report_elf(ui->dwfl, dso->short_name, filename, -1,
-					      al->map->start - al->map->pgoff, false);
+					      map__start(al->map) - al->map->pgoff, false);
 	}
 
 	if (mod) {
@@ -134,17 +134,17 @@ static int access_dso_mem(struct unwind_info *ui, Dwarf_Addr addr,
 {
 	struct addr_location al;
 	ssize_t size;
+	struct dso *dso;
 
 	if (!thread__find_map(ui->thread, PERF_RECORD_MISC_USER, addr, &al)) {
 		pr_debug("unwind: no map for %lx\n", (unsigned long)addr);
 		return -1;
 	}
-
-	if (!al.map->dso)
+	dso = map__dso(al.map);
+	if (!dso)
 		return -1;
 
-	size = dso__data_read_addr(al.map->dso, al.map, ui->machine,
-				   addr, (u8 *) data, sizeof(*data));
+	size = dso__data_read_addr(dso, al.map, ui->machine, addr, (u8 *) data, sizeof(*data));
 
 	return !(size == sizeof(*data));
 }

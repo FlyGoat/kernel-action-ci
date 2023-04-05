@@ -701,8 +701,8 @@ static enum match_result match_chain_strings(const char *left,
 static enum match_result match_chain_dso_addresses(struct map *left_map, u64 left_ip,
 						   struct map *right_map, u64 right_ip)
 {
-	struct dso *left_dso = left_map ? left_map->dso : NULL;
-	struct dso *right_dso = right_map ? right_map->dso : NULL;
+	struct dso *left_dso = left_map ? map__dso(left_map) : NULL;
+	struct dso *right_dso = right_map ? map__dso(right_map) : NULL;
 
 	if (left_dso != right_dso)
 		return left_dso < right_dso ? MATCH_LT : MATCH_GT;
@@ -1112,6 +1112,8 @@ int hist_entry__append_callchain(struct hist_entry *he, struct perf_sample *samp
 int fill_callchain_info(struct addr_location *al, struct callchain_cursor_node *node,
 			bool hide_unresolved)
 {
+	struct machine *machine = maps__machine(node->ms.maps);
+
 	al->maps = node->ms.maps;
 	al->map = node->ms.map;
 	al->sym = node->ms.sym;
@@ -1124,9 +1126,8 @@ int fill_callchain_info(struct addr_location *al, struct callchain_cursor_node *
 		if (al->map == NULL)
 			goto out;
 	}
-
-	if (al->maps == machine__kernel_maps(al->maps->machine)) {
-		if (machine__is_host(al->maps->machine)) {
+	if (al->maps == machine__kernel_maps(machine)) {
+		if (machine__is_host(machine)) {
 			al->cpumode = PERF_RECORD_MISC_KERNEL;
 			al->level = 'k';
 		} else {
@@ -1134,7 +1135,7 @@ int fill_callchain_info(struct addr_location *al, struct callchain_cursor_node *
 			al->level = 'g';
 		}
 	} else {
-		if (machine__is_host(al->maps->machine)) {
+		if (machine__is_host(machine)) {
 			al->cpumode = PERF_RECORD_MISC_USER;
 			al->level = '.';
 		} else if (perf_guest) {
@@ -1173,7 +1174,7 @@ char *callchain_list__sym_name(struct callchain_list *cl,
 	if (show_dso)
 		scnprintf(bf + printed, bfsize - printed, " %s",
 			  cl->ms.map ?
-			  cl->ms.map->dso->short_name :
+			  map__dso(cl->ms.map)->short_name :
 			  "unknown");
 
 	return bf;

@@ -24,13 +24,13 @@
 
 static int buildid__map_cb(struct map *map, void *arg __maybe_unused)
 {
-	const struct dso *dso = map->dso;
+	const struct dso *dso = map__dso(map);
 	char bid_buf[SBUILD_ID_SIZE];
 
 	memset(bid_buf, 0, sizeof(bid_buf));
 	if (dso->has_build_id)
 		build_id__sprintf(&dso->bid, bid_buf);
-	printf("%s %16" PRIx64 " %16" PRIx64, bid_buf, map->start, map->end);
+	printf("%s %16" PRIx64 " %16" PRIx64, bid_buf, map__start(map), map__end(map));
 	if (dso->long_name != NULL) {
 		printf(" %s", dso->long_name);
 	} else if (dso->short_name != NULL) {
