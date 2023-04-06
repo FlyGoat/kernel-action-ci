@@ -12,10 +12,10 @@
 #include "rsrc.h"
 #include "uring_cmd.h"
 
-static void io_uring_cmd_work(struct io_kiocb *req, bool *locked)
+static void io_uring_cmd_work(struct io_kiocb *req, struct io_tw_state *ts)
 {
 	struct io_uring_cmd *ioucmd = io_kiocb_to_cmd(req, struct io_uring_cmd);
-	unsigned issue_flags = *locked ? 0 : IO_URING_F_UNLOCKED;
+	unsigned issue_flags = ts->locked ? 0 : IO_URING_F_UNLOCKED;
 
 	ioucmd->task_work_cb(ioucmd, issue_flags);
 }
@@ -73,6 +73,7 @@ int io_uring_cmd_prep_async(struct io_kiocb *req)
 	cmd_size = uring_cmd_pdu_size(req->ctx->flags & IORING_SETUP_SQE128);
 
 	memcpy(req->async_data, ioucmd->cmd, cmd_size);
+	ioucmd->cmd = req->async_data;
 	return 0;
 }
 
@@ -128,9 +129,6 @@ int io_uring_cmd(struct io_kiocb *req, unsigned int issue_flags)
 		req->iopoll_completed = 0;
 		WRITE_ONCE(ioucmd->cookie, NULL);
 	}
-
-	if (req_has_async_data(req))
-		ioucmd->cmd = req->async_data;
 
 	ret = file->f_op->uring_cmd(ioucmd, issue_flags);
 	if (ret == -EAGAIN) {
