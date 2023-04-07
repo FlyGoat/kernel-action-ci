@@ -3157,6 +3157,12 @@ config MIPS32_N32
 
 	  If unsure, say N.
 
+config CC_HAS_SMARTMIPS
+	def_bool $(cc-option,-msmartmips)
+
+config CC_HAS_MICROMIPS
+	def_bool $(cc-option,-mmicromips)
+
 config CC_HAS_MNO_BRANCH_LIKELY
 	def_bool y
 	depends on $(cc-option,-mno-branch-likely)
@@ -3164,6 +3170,27 @@ config CC_HAS_MNO_BRANCH_LIKELY
 # https://github.com/llvm/llvm-project/issues/61045
 config CC_HAS_BROKEN_INLINE_COMPAT_BRANCH
 	def_bool y if CC_IS_CLANG
+
+config AS_HAS_MSA
+	def_bool $(cc-option,-Wa$(comma)-mmsa)
+
+config AS_HAS_VIRT
+	def_bool $(cc-option,-Wa$(comma)-mvirt)
+
+# For -mmicromips, use -Wa,-fatal-warnings to catch unsupported -mxpa which
+# only warns
+config AS_HAS_XPA
+	def_bool $(cc-option,-Wa$(comma)-mxpa) if !CPU_MICROMIPS
+	def_bool $(cc-option,-mmicromips -Wa$(comma)-fatal-warnings -Wa$(comma)-mxpa) if CPU_MICROMIPS
+
+config AS_HAS_CRC
+	def_bool $(cc-option,-Wa$(comma)-mcrc)
+
+config AS_HAS_DSP
+	def_bool $(cc-option,-Wa$(comma)-mdsp)
+
+config AS_HAS_GINV
+	def_bool $(cc-option,-Wa$(comma)-mginv)
 
 menu "Power management options"
 

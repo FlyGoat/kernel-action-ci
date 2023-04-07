@@ -1604,7 +1604,7 @@ do {									\
 	local_irq_restore(__flags);					\
 } while (0)
 
-#ifndef TOOLCHAIN_SUPPORTS_XPA
+#ifndef CONFIG_AS_HAS_XPA
 #define _ASM_SET_MFHC0							\
 	_ASM_MACRO_2R_1S(mfhc0, rt, rs, sel,				\
 			 _ASM_INSN_IF_MIPS(0x40400000 | __rt << 16 | __rs << 11 | \\sel)	\
@@ -1615,7 +1615,7 @@ do {									\
 			 _ASM_INSN_IF_MIPS(0x40c00000 | __rt << 16 | __rd << 11 | \\sel)	\
 			 _ASM_INSN32_IF_MM(0x000002f4 | __rt << 21 | __rd << 16 | \\sel << 11))
 #define _ASM_UNSET_MTHC0 ".purgem mthc0\n\t"
-#else	/* !TOOLCHAIN_SUPPORTS_XPA */
+#else	/* !CONFIG_AS_HAS_XPA */
 #define _ASM_SET_MFHC0 ".set\txpa\n\t"
 #define _ASM_SET_MTHC0 ".set\txpa\n\t"
 #define _ASM_UNSET_MFHC0
@@ -2040,7 +2040,7 @@ do {									\
  * Macros to access the guest system control coprocessor
  */
 
-#ifndef TOOLCHAIN_SUPPORTS_VIRT
+#ifndef CONFIG_AS_HAS_VIRT
 #define _ASM_SET_MFGC0							\
 	_ASM_MACRO_2R_1S(mfgc0, rt, rs, sel,				\
 			 _ASM_INSN_IF_MIPS(0x40600000 | __rt << 16 | __rs << 11 | \\sel)	\
@@ -2077,7 +2077,7 @@ do {									\
 #define __tlbginvf()							\
 		_ASM_INSN_IF_MIPS(0x4200000c)				\
 		_ASM_INSN32_IF_MM(0x0000517c)
-#else	/* !TOOLCHAIN_SUPPORTS_VIRT */
+#else	/* !CONFIG_AS_HAS_VIRT */
 #define _ASM_SET_VIRT ".set\tvirt\n\t"
 #define _ASM_SET_MFGC0	_ASM_SET_VIRT
 #define _ASM_SET_DMFGC0	_ASM_SET_VIRT
@@ -2395,7 +2395,7 @@ do {									\
 	: : "r" (val));							\
 } while (0)
 
-#ifdef TOOLCHAIN_SUPPORTS_DSP
+#ifdef CONFIG_AS_HAS_DSP
 #define rddsp(mask)							\
 ({									\
 	unsigned int __dspctl;						\
