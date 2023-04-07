@@ -156,7 +156,7 @@ static inline void init_msa_upper(void)
 	_init_msa_upper();
 }
 
-#ifndef TOOLCHAIN_SUPPORTS_MSA
+#ifndef CONFIG_AS_HAS_MSA
 /*
  * Define assembler macros using .word for the c[ft]cmsa instructions in order
  * to allow compilation with toolchains that do not support MSA. Once all
@@ -173,7 +173,7 @@ static inline void init_msa_upper(void)
 		      _ASM_INSN_IF_MIPS(0x783e0019 | __rs << 11 | __cd << 6)	\
 		      _ASM_INSN32_IF_MM(0x583e0016 | __rs << 11 | __cd << 6))
 #define _ASM_UNSET_CTCMSA ".purgem ctcmsa\n\t"
-#else /* TOOLCHAIN_SUPPORTS_MSA */
+#else /* CONFIG_AS_HAS_MSA */
 #define _ASM_SET_CFCMSA						\
 		".set\tfp=64\n\t"				\
 		".set\tmsa\n\t"

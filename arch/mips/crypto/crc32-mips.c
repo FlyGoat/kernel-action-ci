@@ -27,7 +27,7 @@ enum crc_type {
 	crc32c,
 };
 
-#ifndef TOOLCHAIN_SUPPORTS_CRC
+#ifndef CONFIG_AS_HAS_CRC
 #define _ASM_SET_CRC(OP, SZ, TYPE)					  \
 _ASM_MACRO_3R(OP, rt, rs, rt2,						  \
 	".ifnc	\\rt, \\rt2\n\t"					  \
@@ -38,7 +38,7 @@ _ASM_MACRO_3R(OP, rt, rs, rt2,						  \
 	_ASM_INSN32_IF_MM(0x00000030 | (__rs << 16) | (__rt << 21) |	  \
 			  ((SZ) << 14) | ((TYPE) << 3)))
 #define _ASM_UNSET_CRC(op, SZ, TYPE) ".purgem " #op "\n\t"
-#else /* !TOOLCHAIN_SUPPORTS_CRC */
+#else /* !CONFIG_AS_HAS_CRC */
 #define _ASM_SET_CRC(op, SZ, TYPE) ".set\tcrc\n\t"
 #define _ASM_UNSET_CRC(op, SZ, TYPE)
 #endif

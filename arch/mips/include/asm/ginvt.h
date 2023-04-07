@@ -10,7 +10,7 @@ enum ginvt_type {
 	GINVT_MMID,
 };
 
-#ifdef TOOLCHAIN_SUPPORTS_GINV
+#ifdef CONFIG_AS_HAS_GINV
 # define _ASM_SET_GINV	".set	ginv\n"
 # define _ASM_UNSET_GINV
 #else

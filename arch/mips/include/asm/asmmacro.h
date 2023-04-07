@@ -239,7 +239,7 @@
 	 .word	0x41800000 | (\rt << 16) | (\rd << 11) | (\u << 5) | (\sel)
 	.endm
 
-#ifdef TOOLCHAIN_SUPPORTS_MSA
+#ifdef CONFIG_AS_HAS_MSA
 	.macro	_cfcmsa	rd, cs
 	.set	push
 	.set	mips32r2
@@ -507,7 +507,7 @@
 	.endm
 #endif
 
-#ifdef TOOLCHAIN_SUPPORTS_MSA
+#ifdef CONFIG_AS_HAS_MSA
 #define FPR_BASE_OFFS	THREAD_FPR0
 #define FPR_BASE	$1
 #else
@@ -518,7 +518,7 @@
 	.macro	msa_save_all	thread
 	.set	push
 	.set	noat
-#ifdef TOOLCHAIN_SUPPORTS_MSA
+#ifdef CONFIG_AS_HAS_MSA
 	PTR_ADDU FPR_BASE, \thread, FPR_BASE_OFFS
 #endif
 	st_d	 0, THREAD_FPR0  - FPR_BASE_OFFS, FPR_BASE
@@ -565,7 +565,7 @@
 	.set	hardfloat
 	lw	$1, THREAD_MSA_CSR(\thread)
 	_ctcmsa	MSA_CSR, $1
-#ifdef TOOLCHAIN_SUPPORTS_MSA
+#ifdef CONFIG_AS_HAS_MSA
 	PTR_ADDU FPR_BASE, \thread, FPR_BASE_OFFS
 #endif
 	ld_d	 0, THREAD_FPR0  - FPR_BASE_OFFS, FPR_BASE
