@@ -4,6 +4,7 @@ if CPU_CAVIUM_OCTEON
 config CAVIUM_CN63XXP1
 	bool "Enable CN63XXP1 errata workarounds"
 	default "n"
+	depends on AS_HAS_CN63XXP1_WORKAROUNDS
 	help
 	  The CN63XXP1 chip requires build time workarounds to
 	  function reliably, select this option to enable them.  These
