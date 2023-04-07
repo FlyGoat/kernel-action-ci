@@ -2360,7 +2360,7 @@ config CPU_NEEDS_NO_SMARTMIPS_OR_MICROMIPS
 	  Select this if you want neither microMIPS nor SmartMIPS support
 
 config CPU_HAS_SMARTMIPS
-	depends on SYS_SUPPORTS_SMARTMIPS
+	depends on SYS_SUPPORTS_SMARTMIPS && CC_HAS_SMARTMIPS
 	bool "SmartMIPS"
 	help
 	  SmartMIPS is a extension of the MIPS32 architecture aimed at
@@ -2372,7 +2372,7 @@ config CPU_HAS_SMARTMIPS
 	  here.
 
 config CPU_MICROMIPS
-	depends on 32BIT && SYS_SUPPORTS_MICROMIPS && !CPU_MIPSR6
+	depends on 32BIT && SYS_SUPPORTS_MICROMIPS && CC_HAS_MICROMIPS && !CPU_MIPSR6
 	bool "microMIPS"
 	help
 	  When this option is enabled the kernel will be built using the
