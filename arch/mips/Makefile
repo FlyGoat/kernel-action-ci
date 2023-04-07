@@ -193,9 +193,9 @@ cflags-$(CONFIG_CC_IS_CLANG) += -march=mips64r2
 endif
 cflags-$(CONFIG_CPU_LOONGSON64) += $(call cc-option,-mno-loongson-mmi)
 
-cflags-$(CONFIG_CPU_R4000_WORKAROUNDS)	+= $(call cc-option,-mfix-r4000,)
-cflags-$(CONFIG_CPU_R4400_WORKAROUNDS)	+= $(call cc-option,-mfix-r4400,)
-cflags-$(CONFIG_CPU_DADDI_WORKAROUNDS)	+= $(call cc-option,-mno-daddi,)
+cflags-$(CONFIG_CPU_R4000_WORKAROUNDS)	+= -mfix-r4000
+cflags-$(CONFIG_CPU_R4400_WORKAROUNDS)	+= -mfix-r4400
+cflags-$(CONFIG_CPU_DADDI_WORKAROUNDS)	+= -mno-daddi
 ifdef CONFIG_CPU_LOONGSON2F_WORKAROUNDS
 cflags-$(CONFIG_CPU_NOP_WORKAROUNDS) += -Wa,-mfix-loongson2f-nop
 cflags-$(CONFIG_CPU_JUMP_WORKAROUNDS) += -Wa,-mfix-loongson2f-jump

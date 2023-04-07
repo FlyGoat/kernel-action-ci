@@ -371,9 +371,9 @@ config MACH_DECSTATION
 	select CEVT_R4K if CPU_R4X00
 	select CSRC_IOASIC
 	select CSRC_R4K if CPU_R4X00
-	select CPU_DADDI_WORKAROUNDS if 64BIT
-	select CPU_R4000_WORKAROUNDS if 64BIT
-	select CPU_R4400_WORKAROUNDS if 64BIT
+	imply CPU_DADDI_WORKAROUNDS
+	imply CPU_R4000_WORKAROUNDS
+	imply CPU_R4400_WORKAROUNDS
 	select DMA_NONCOHERENT
 	select NO_IOPORT_MAP
 	select IRQ_MIPS_CPU
@@ -1723,6 +1723,7 @@ config CPU_JUMP_WORKAROUNDS
 config CPU_LOONGSON2F_WORKAROUNDS
 	bool "Loongson 2F Workarounds"
 	default y
+	depends on AS_HAS_NOP_WORKAROUNDS && AS_HAS_JUMP_WORKAROUNDS
 	select CPU_NOP_WORKAROUNDS
 	select CPU_JUMP_WORKAROUNDS
 	help
@@ -2456,6 +2457,7 @@ config CPU_HAS_SYNC
 #   "MIPS R4400MC Errata, Processor Revision 1.0", erratum #5
 config CPU_DADDI_WORKAROUNDS
 	bool
+	depends on CPU_R4X00_BUGS64 && CC_HAS_DADDI_WORKAROUNDS
 
 # Work around certain R4000 CPU errata (as implemented by GCC):
 #
@@ -2477,6 +2479,7 @@ config CPU_DADDI_WORKAROUNDS
 #   erratum #52
 config CPU_R4000_WORKAROUNDS
 	bool
+	depends on CPU_R4X00_BUGS64 && CC_HAS_R4000_WORKAROUNDS
 	select CPU_R4400_WORKAROUNDS
 
 # Work around certain R4400 CPU errata (as implemented by GCC):
@@ -2487,6 +2490,7 @@ config CPU_R4000_WORKAROUNDS
 #   "MIPS R4400MC Errata, Processor Revision 2.0 & 3.0", erratum #4
 config CPU_R4400_WORKAROUNDS
 	bool
+	depends on CPU_R4X00_BUGS64 && CC_HAS_R4400_WORKAROUNDS
 
 config CPU_R4X00_BUGS64
 	bool
@@ -3167,6 +3171,15 @@ config CC_HAS_MNO_BRANCH_LIKELY
 	def_bool y
 	depends on $(cc-option,-mno-branch-likely)
 
+config CC_HAS_R4000_WORKAROUNDS
+	def_bool $(cc-option,-mfix-r4000)
+
+config CC_HAS_R4400_WORKAROUNDS
+	def_bool $(cc-option,-mfix-r4400)
+
+config CC_HAS_DADDI_WORKAROUNDS
+	def_bool $(cc-option,-mno-daddi)
+
 # https://github.com/llvm/llvm-project/issues/61045
 config CC_HAS_BROKEN_INLINE_COMPAT_BRANCH
 	def_bool y if CC_IS_CLANG
@@ -3191,6 +3204,15 @@ config AS_HAS_DSP
 
 config AS_HAS_GINV
 	def_bool $(cc-option,-Wa$(comma)-mginv)
+
+config AS_HAS_CN63XXP1_WORKAROUNDS
+	def_bool $(cc-option,-Wa$(comma)-mfix-cn63xxp1)
+
+config AS_HAS_NOP_WORKAROUNDS
+	def_bool $(cc-option,-Wa$(comma)-mfix-loongson2f-nop)
+
+config AS_HAS_JUMP_WORKAROUNDS
+	def_bool $(cc-option,-Wa$(comma)-mfix-loongson2f-jump)
 
 menu "Power management options"
 
