@@ -1,0 +1,39 @@
+name: Build with GCC toolchain
+on:
+  push:
+    branches-ignore:
+      - main
+
+# The trigger to which the workflow will run 
+jobs:
+  matrix_config:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [allnoconfig, allmodconfig, 32r2_defconfig, 32r2el_defconfig, 64r2_defconfig, 64r2el_defconfig, loongson3_defconfig, lemote2f_defconfig, ip22_defconfig, cavium_octeon_defconfig, malta_defconfig]
+        llvm: [0, 1]
+        llvm_ias: [0, 1]
+        exclude:
+          - llvm: 0
+            llvm_ias: 1
+    env:
+      ARCH: mips
+      CROSS_COMPILE: mips64el-linux-gnuabi64-
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: sudo apt install -y build-essential device-tree-compiler u-boot-tools libncurses-dev gawk flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf crossbuild-essential-mips64el
+      - name: Install LLVM
+        if: matrix.llvm == 1
+        run: |
+            wget https://apt.llvm.org/llvm.sh
+            chmod +x llvm.sh
+            sudo ./llvm.sh 16
+            echo "LLVM=-16" >> "$GITHUB_ENV"
+            echo "LLVM_IAS=${{ matrix.llvm_ias }}" >> "$GITHUB_ENV"
+      - name: Configure
+        run: make ${{ matrix.config }}
+      - name: Build
+        run: make -j$(nproc)
