@@ -54,7 +54,7 @@ void __cpuidle r4k_wait_irqoff(void)
 	if (!need_resched())
 		__asm__(
 		"	.set	push		\n"
-		"	.set	arch=r4000	\n"
+		"	.set	"MIPS_ISA_ARCH_LEVEL"\n"
 		"	wait			\n"
 		"	.set	pop		\n");
 }
@@ -68,7 +68,7 @@ static void __cpuidle rm7k_wait_irqoff(void)
 	if (!need_resched())
 		__asm__(
 		"	.set	push					\n"
-		"	.set	arch=r4000				\n"
+		"	.set	"MIPS_ISA_ARCH_LEVEL"			\n"
 		"	.set	noat					\n"
 		"	mfc0	$1, $12					\n"
 		"	sync						\n"
@@ -89,7 +89,7 @@ static void __cpuidle au1k_wait(void)
 
 	__asm__(
 	"	.set	push			\n"
-	"	.set	arch=r4000		\n"
+	"	.set	"MIPS_ISA_ARCH_LEVEL"	\n"
 	"	cache	0x14, 0(%0)		\n"
 	"	cache	0x14, 32(%0)		\n"
 	"	sync				\n"

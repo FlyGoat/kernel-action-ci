@@ -197,7 +197,7 @@ static inline unsigned int dvpe(void)
 	"	.set	push						\n"
 	"	.set	noreorder					\n"
 	"	.set	noat						\n"
-	"	.set	mips32r2					\n"
+	"	.set	"MIPS_ISA_LEVEL"				\n"
 	"	.word	0x41610001		# dvpe $1		\n"
 	"	move	%0, $1						\n"
 	"	ehb							\n"
@@ -215,7 +215,7 @@ static inline void __raw_evpe(void)
 	"	.set	push						\n"
 	"	.set	noreorder					\n"
 	"	.set	noat						\n"
-	"	.set	mips32r2					\n"
+	"	.set	"MIPS_ISA_LEVEL"				\n"
 	"	.word	0x41600021		# evpe			\n"
 	"	ehb							\n"
 	"	.set	pop						\n");
@@ -238,7 +238,7 @@ static inline unsigned int dmt(void)
 
 	__asm__ __volatile__(
 	"	.set	push						\n"
-	"	.set	mips32r2					\n"
+	"	.set	"MIPS_ISA_LEVEL"				\n"
 	"	.set	noat						\n"
 	"	.word	0x41610BC1			# dmt $1	\n"
 	"	ehb							\n"
@@ -256,7 +256,7 @@ static inline void __raw_emt(void)
 	__asm__ __volatile__(
 	"	.set	push						\n"
 	"	.set	noreorder					\n"
-	"	.set	mips32r2					\n"
+	"	.set	"MIPS_ISA_LEVEL"				\n"
 	"	.word	0x41600be1			# emt		\n"
 	"	ehb							\n"
 	"	.set	pop");
@@ -277,7 +277,7 @@ static inline void ehb(void)
 {
 	__asm__ __volatile__(
 	"	.set	push					\n"
-	"	.set	mips32r2				\n"
+	"	.set	"MIPS_ISA_LEVEL"			\n"
 	"	ehb						\n"
 	"	.set	pop					\n");
 }
@@ -288,7 +288,7 @@ static inline void ehb(void)
 									\
 	__asm__ __volatile__(						\
 	"	.set	push					\n"	\
-	"	.set	mips32r2				\n"	\
+	"	.set	"MIPS_ISA_LEVEL"			\n"	\
 	"	.set	noat					\n"	\
 	"	# mftc0 $1, $" #rt ", " #sel "			\n"	\
 	"	.word	0x41000800 | (" #rt " << 16) | " #sel " \n"	\
@@ -306,7 +306,7 @@ static inline void ehb(void)
 	__asm__ __volatile__(						\
 	"	.set	push					\n"	\
 	"	.set	noat					\n"	\
-	"	.set	mips32r2				\n"	\
+	"	.set	"MIPS_ISA_LEVEL"			\n"	\
 	"	# mftgpr $1," #rt "				\n"	\
 	"	.word	0x41000820 | (" #rt " << 16)		\n"	\
 	"	move	%0, $1					\n"	\
@@ -331,7 +331,7 @@ static inline void ehb(void)
 do {									\
 	__asm__ __volatile__(						\
 	"	.set	push					\n"	\
-	"	.set	mips32r2				\n"	\
+	"	.set	"MIPS_ISA_LEVEL"			\n"	\
 	"	.set	noat					\n"	\
 	"	move	$1, %0					\n"	\
 	"	# mttgpr $1, " #rd "				\n"	\
@@ -344,7 +344,7 @@ do {									\
 ({									\
 	__asm__ __volatile__(						\
 	"	.set	push					\n"	\
-	"	.set	mips32r2				\n"	\
+	"	.set	"MIPS_ISA_LEVEL"			\n"	\
 	"	.set	noat					\n"	\
 	"	move	$1, %0					\n"	\
 	"	# mttc0 %0," #rd ", " #sel "			\n"	\

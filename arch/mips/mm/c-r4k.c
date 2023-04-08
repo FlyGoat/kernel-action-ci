@@ -918,7 +918,7 @@ static inline void rm7k_erratum31(void)
 		__asm__ __volatile__ (
 			".set push\n\t"
 			".set noreorder\n\t"
-			".set mips3\n\t"
+			".set "MIPS_ISA_LEVEL"\n\t"
 			"cache\t%1, 0(%0)\n\t"
 			"cache\t%1, 0x1000(%0)\n\t"
 			"cache\t%1, 0x2000(%0)\n\t"

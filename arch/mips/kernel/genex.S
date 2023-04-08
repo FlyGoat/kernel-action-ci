@@ -50,7 +50,7 @@ NESTED(except_vec3_generic, 0, sp)
  */
 NESTED(except_vec3_r4000, 0, sp)
 	.set	push
-	.set	arch=r4000
+	.set	MIPS_ISA_ARCH_LEVEL_RAW
 	.set	noat
 	mfc0	k1, CP0_CAUSE
 	li	k0, 31<<2
@@ -403,7 +403,7 @@ NESTED(ejtag_debug_handler, PT_SIZE, sp)
 ejtag_return:
 	back_to_back_c0_hazard
 	MFC0	k0, CP0_DESAVE
-	.set	mips32
+	.set	MIPS_ISA_LEVEL_RAW
 	deret
 	.set	pop
 	END(ejtag_debug_handler)
@@ -503,7 +503,7 @@ NESTED(nmi_handler, PT_SIZE, sp)
 	 * We need to specify a selector to access the CP0.Diag1 (GSCause)
 	 * register. All GSExc-equipped processors have MIPS32.
 	 */
-	.set	mips32
+	.set	MIPS_ISA_LEVEL_RAW
 	mfc0	a1, CP0_DIAGNOSTIC1
 	.set	pop
 	TRACE_IRQS_ON
@@ -665,7 +665,7 @@ isrdhwr:
 	xori	k1, _THREAD_MASK
 	LONG_L	v1, TI_TP_VALUE(k1)
 	.set	push
-	.set	arch=r4000
+	.set	MIPS_ISA_ARCH_LEVEL_RAW
 	eret
 	.set	pop
 #endif
