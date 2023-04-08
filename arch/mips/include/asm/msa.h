@@ -175,10 +175,12 @@ static inline void init_msa_upper(void)
 #define _ASM_UNSET_CTCMSA ".purgem ctcmsa\n\t"
 #else /* TOOLCHAIN_SUPPORTS_MSA */
 #define _ASM_SET_CFCMSA						\
+		".set\t"MIPS_ISA_LEVEL"\n\t"			\
 		".set\tfp=64\n\t"				\
 		".set\tmsa\n\t"
 #define _ASM_UNSET_CFCMSA
 #define _ASM_SET_CTCMSA						\
+		".set\t"MIPS_ISA_LEVEL"\n\t"			\
 		".set\tfp=64\n\t"				\
 		".set\tmsa\n\t"
 #define _ASM_UNSET_CTCMSA
