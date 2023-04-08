@@ -20,6 +20,7 @@
 #endif
 
 /* preprocessor replaces the fp in ".set fp=64" with $30 otherwise */
+#pragma push_macro("fp")
 #undef fp
 
 /*
@@ -654,5 +655,7 @@
 	msa_init_upper	31
 	.set	pop
 	.endm
+
+#pragma pop_macro("fp")
 
 #endif /* _ASM_ASMMACRO_H */
