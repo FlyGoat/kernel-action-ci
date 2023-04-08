@@ -33,7 +33,7 @@ static inline void indy_sc_wipe(unsigned long first, unsigned long last)
 	__asm__ __volatile__(
 	"	.set	push			# indy_sc_wipe		\n"
 	"	.set	noreorder					\n"
-	"	.set	mips3						\n"
+	"	.set	"MIPS_ISA_LEVEL"				\n"
 	"	.set	noat						\n"
 	"	mfc0	%2, $12						\n"
 	"	li	$1, 0x80		# Go 64 bit		\n"
@@ -108,7 +108,7 @@ static void indy_sc_enable(void)
 	__asm__ __volatile__(
 	".set\tpush\n\t"
 	".set\tnoreorder\n\t"
-	".set\tmips3\n\t"
+	".set\t"MIPS_ISA_LEVEL"\n\t"
 	"mfc0\t%2, $12\n\t"
 	"nop; nop; nop; nop;\n\t"
 	"li\t%1, 0x80\n\t"
@@ -138,7 +138,7 @@ static void indy_sc_disable(void)
 	__asm__ __volatile__(
 	".set\tpush\n\t"
 	".set\tnoreorder\n\t"
-	".set\tmips3\n\t"
+	".set\t"MIPS_ISA_LEVEL"\n\t"
 	"li\t%0, 0x1\n\t"
 	"dsll\t%0, 31\n\t"
 	"lui\t%1, 0x9000\n\t"

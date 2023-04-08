@@ -428,7 +428,7 @@
 		eretnc
 #else
 		.set	push
-		.set	arch=r4000
+		.set	MIPS_ISA_ARCH_LEVEL_RAW
 		eret
 		.set	pop
 #endif
