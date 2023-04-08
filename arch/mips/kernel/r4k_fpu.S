@@ -107,7 +107,7 @@ LEAF(_save_fp_context)
 	.set	push
 	.set	hardfloat
 #if defined(CONFIG_CPU_MIPSR2) || defined(CONFIG_CPU_MIPSR5)
-	.set	mips32r2
+	.set	MIPS_ISA_LEVEL_RAW
 	.set	fp=64
 	mfc0	t0, CP0_STATUS
 	sll	t0, t0, 5
@@ -175,7 +175,7 @@ LEAF(_restore_fp_context)
 	.set	push
 	.set	hardfloat
 #if defined(CONFIG_CPU_MIPSR2) || defined(CONFIG_CPU_MIPSR5)
-	.set	mips32r2
+	.set	MIPS_ISA_LEVEL_RAW
 	.set	fp=64
 	mfc0	t0, CP0_STATUS
 	sll	t0, t0, 5

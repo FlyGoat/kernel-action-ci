@@ -243,7 +243,7 @@ static inline void pfx##write##bwlq(type val,				\
 			local_irq_save(__flags);			\
 		__asm__ __volatile__(					\
 			".set	push"		"\t\t# __writeq""\n\t"	\
-			".set	arch=r4000"			"\n\t"	\
+			".set	"MIPS_ISA_ARCH_LEVEL		"\n\t"	\
 			"dsll32 %L0, %L0, 0"			"\n\t"	\
 			"dsrl32 %L0, %L0, 0"			"\n\t"	\
 			"dsll32 %M0, %M0, 0"			"\n\t"	\
@@ -277,7 +277,7 @@ static inline type pfx##read##bwlq(const volatile void __iomem *mem)	\
 			local_irq_save(__flags);			\
 		__asm__ __volatile__(					\
 			".set	push"		"\t\t# __readq" "\n\t"	\
-			".set	arch=r4000"			"\n\t"	\
+			".set	"MIPS_ISA_ARCH_LEVEL		"\n\t"	\
 			"ld	%L0, %1"			"\n\t"	\
 			"dsra32 %M0, %L0, 0"			"\n\t"	\
 			"sll	%L0, %L0, 0"			"\n\t"	\

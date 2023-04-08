@@ -29,11 +29,11 @@
 		"	.set	push				\n"	\
 		"	.set	noat				\n"	\
 		"	.set	push				\n"	\
-		"	.set	arch=r4000			\n"	\
+		"	.set	"MIPS_ISA_ARCH_LEVEL"		\n"	\
 		"1:	ll	%1, %4	# __futex_atomic_op	\n"	\
 		"	.set	pop				\n"	\
 		"	" insn	"				\n"	\
-		"	.set	arch=r4000			\n"	\
+		"	.set	"MIPS_ISA_ARCH_LEVEL"		\n"	\
 		"2:	sc	$1, %2				\n"	\
 		"	beqzl	$1, 1b				\n"	\
 		__stringify(__WEAK_LLSC_MB) "			\n"	\
@@ -144,12 +144,12 @@ futex_atomic_cmpxchg_inatomic(u32 *uval, u32 __user *uaddr,
 		"	.set	push					\n"
 		"	.set	noat					\n"
 		"	.set	push					\n"
-		"	.set	arch=r4000				\n"
+		"	.set	"MIPS_ISA_ARCH_LEVEL"	\n"
 		"1:	ll	%1, %3					\n"
 		"	bne	%1, %z4, 3f				\n"
 		"	.set	pop					\n"
 		"	move	$1, %z5					\n"
-		"	.set	arch=r4000				\n"
+		"	.set	"MIPS_ISA_ARCH_LEVEL"	\n"
 		"2:	sc	$1, %2					\n"
 		"	beqzl	$1, 1b					\n"
 		__stringify(__WEAK_LLSC_MB) "				\n"

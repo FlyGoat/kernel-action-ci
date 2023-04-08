@@ -1421,7 +1421,7 @@ do {								\
 	else								\
 		__asm__ vol(						\
 			".set\tpush\n\t"				\
-			".set\tmips32\n\t"				\
+			".set\t "MIPS_ISA_LEVEL" \n\t"			\
 			"mfc0\t%0, " #source ", " #sel "\n\t"		\
 			".set\tpop\n\t"					\
 			: "=r" (__res));				\
@@ -1435,14 +1435,14 @@ do {								\
 	else if (sel == 0)						\
 		__asm__ vol(						\
 			".set\tpush\n\t"				\
-			".set\tmips3\n\t"				\
+			".set\t "MIPS_ISA_LEVEL" \n\t"			\
 			"dmfc0\t%0, " #source "\n\t"			\
 			".set\tpop"					\
 			: "=r" (__res));				\
 	else								\
 		__asm__ vol(						\
 			".set\tpush\n\t"				\
-			".set\tmips64\n\t"				\
+			".set\t "MIPS_ISA_LEVEL" \n\t"			\
 			"dmfc0\t%0, " #source ", " #sel "\n\t"		\
 			".set\tpop"					\
 			: "=r" (__res));				\
@@ -1470,7 +1470,7 @@ do {									\
 	else								\
 		__asm__ __volatile__(					\
 			".set\tpush\n\t"				\
-			".set\tmips32\n\t"				\
+			".set\t "MIPS_ISA_LEVEL" \n\t"			\
 			"mtc0\t%z0, " #register ", " #sel "\n\t"	\
 			".set\tpop"					\
 			: : "Jr" ((unsigned int)(value)));		\
@@ -1483,14 +1483,14 @@ do {									\
 	else if (sel == 0)						\
 		__asm__ __volatile__(					\
 			".set\tpush\n\t"				\
-			".set\tmips3\n\t"				\
+			".set\t "MIPS_ISA_LEVEL" \n\t"			\
 			"dmtc0\t%z0, " #register "\n\t"			\
 			".set\tpop"					\
 			: : "Jr" (value));				\
 	else								\
 		__asm__ __volatile__(					\
 			".set\tpush\n\t"				\
-			".set\tmips64\n\t"				\
+			".set\t "MIPS_ISA_LEVEL" \n\t"			\
 			"dmtc0\t%z0, " #register ", " #sel "\n\t"	\
 			".set\tpop"					\
 			: : "Jr" (value));				\
@@ -1545,7 +1545,7 @@ do {									\
 	if (sel == 0)							\
 		__asm__ vol(						\
 			".set\tpush\n\t"				\
-			".set\tmips64\n\t"				\
+			".set\t "MIPS_ISA_LEVEL" \n\t"			\
 			"dmfc0\t%L0, " #source "\n\t"			\
 			"dsra\t%M0, %L0, 32\n\t"			\
 			"sll\t%L0, %L0, 0\n\t"				\
@@ -1554,7 +1554,7 @@ do {									\
 	else								\
 		__asm__ vol(						\
 			".set\tpush\n\t"				\
-			".set\tmips64\n\t"				\
+			".set\t "MIPS_ISA_LEVEL" \n\t"			\
 			"dmfc0\t%L0, " #source ", " #sel "\n\t"		\
 			"dsra\t%M0, %L0, 32\n\t"			\
 			"sll\t%L0, %L0, 0\n\t"				\
@@ -1582,7 +1582,7 @@ do {									\
 	else if (sel == 0)						\
 		__asm__ __volatile__(					\
 			".set\tpush\n\t"				\
-			".set\tmips64\n\t"				\
+			".set\t "MIPS_ISA_LEVEL" \n\t"			\
 			"dsll\t%L0, %L0, 32\n\t"			\
 			"dsrl\t%L0, %L0, 32\n\t"			\
 			"dsll\t%M0, %M0, 32\n\t"			\
@@ -1593,7 +1593,7 @@ do {									\
 	else								\
 		__asm__ __volatile__(					\
 			".set\tpush\n\t"				\
-			".set\tmips64\n\t"				\
+			".set\t "MIPS_ISA_LEVEL" \n\t"			\
 			"dsll\t%L0, %L0, 32\n\t"			\
 			"dsrl\t%L0, %L0, 32\n\t"			\
 			"dsll\t%M0, %M0, 32\n\t"			\
@@ -1628,7 +1628,7 @@ do {									\
 									\
 	__asm__ __volatile__(						\
 	"	.set	push					\n"	\
-	"	.set	mips32r2				\n"	\
+	"	.set	"MIPS_ISA_LEVEL"			\n"	\
 	_ASM_SET_MFHC0							\
 	"	mfhc0	%0, " #source ", %1			\n"	\
 	_ASM_UNSET_MFHC0						\
@@ -1642,7 +1642,7 @@ do {									\
 do {									\
 	__asm__ __volatile__(						\
 	"	.set	push					\n"	\
-	"	.set	mips32r2				\n"	\
+	"	.set	"MIPS_ISA_LEVEL"			\n"	\
 	_ASM_SET_MTHC0							\
 	"	mthc0	%z0, " #register ", %1			\n"	\
 	_ASM_UNSET_MTHC0						\
@@ -2040,7 +2040,14 @@ do {									\
  * Macros to access the guest system control coprocessor
  */
 
-#ifndef CONFIG_AS_HAS_VIRT
+#if MIPS_ISA_REV < 5
+/* VZ ASE should be able to work with Release 2 but LLVM thinks it needs R5 */
+#define MIPS_ISA_LEVEL_VIRT "mips64r5"
+#else
+#define MIPS_ISA_LEVEL_VIRT MIPS_ISA_LEVEL
+#endif
+
+#ifndef TOOLCHAIN_SUPPORTS_VIRT
 #define _ASM_SET_MFGC0							\
 	_ASM_MACRO_2R_1S(mfgc0, rt, rs, sel,				\
 			 _ASM_INSN_IF_MIPS(0x40600000 | __rt << 16 | __rs << 11 | \\sel)	\
@@ -2099,7 +2106,7 @@ do {									\
 ({ int __res;								\
 	__asm__ __volatile__(						\
 		".set\tpush\n\t"					\
-		".set\tmips32r5\n\t"					\
+		".set\t " MIPS_ISA_LEVEL_VIRT " \n\t"			\
 		_ASM_SET_MFGC0						\
 		"mfgc0\t%0, " #source ", %1\n\t"			\
 		_ASM_UNSET_MFGC0					\
@@ -2113,7 +2120,7 @@ do {									\
 ({ unsigned long long __res;						\
 	__asm__ __volatile__(						\
 		".set\tpush\n\t"					\
-		".set\tmips64r5\n\t"					\
+		".set\t " MIPS_ISA_LEVEL_VIRT " \n\t"			\
 		_ASM_SET_DMFGC0						\
 		"dmfgc0\t%0, " #source ", %1\n\t"			\
 		_ASM_UNSET_DMFGC0					\
@@ -2127,7 +2134,7 @@ do {									\
 do {									\
 	__asm__ __volatile__(						\
 		".set\tpush\n\t"					\
-		".set\tmips32r5\n\t"					\
+		".set\t " MIPS_ISA_LEVEL_VIRT " \n\t"			\
 		_ASM_SET_MTGC0						\
 		"mtgc0\t%z0, " #register ", %1\n\t"			\
 		_ASM_UNSET_MTGC0					\
@@ -2140,7 +2147,7 @@ do {									\
 do {									\
 	__asm__ __volatile__(						\
 		".set\tpush\n\t"					\
-		".set\tmips64r5\n\t"					\
+		".set\t " MIPS_ISA_LEVEL_VIRT " \n\t"			\
 		_ASM_SET_DMTGC0						\
 		"dmtgc0\t%z0, " #register ", %1\n\t"			\
 		_ASM_UNSET_DMTGC0					\
@@ -2376,7 +2383,7 @@ do {									\
 	"	.set	reorder					\n"	\
 	"	# gas fails to assemble cfc1 for some archs,	\n"	\
 	"	# like Octeon.					\n"	\
-	"	.set	mips1					\n"	\
+	"	.set	"MIPS_ISA_LEVEL"			\n"	\
 	"	.set hardfloat					\n"	\
 	"	cfc1	%0,"STR(source)"			\n"	\
 	"	.set	pop					\n"	\
@@ -2748,7 +2755,7 @@ static inline void tlb_read(void)
 	"	.set	push					\n"
 	"	.set	noreorder				\n"
 	"	.set	noat					\n"
-	"	.set	mips32r2				\n"
+	"	.set	"MIPS_ISA_LEVEL"			\n"
 	"	.word	0x41610001		# dvpe $1	\n"
 	"	move	%0, $1					\n"
 	"	ehb						\n"
@@ -2769,7 +2776,7 @@ static inline void tlb_read(void)
 		"	.set	push				\n"
 		"	.set	noreorder			\n"
 		"	.set	noat				\n"
-		"	.set	mips32r2			\n"
+		"	.set	"MIPS_ISA_LEVEL"		\n"
 		"	.word	0x41600021	# evpe		\n"
 		"	ehb					\n"
 		"	.set	pop				\n");

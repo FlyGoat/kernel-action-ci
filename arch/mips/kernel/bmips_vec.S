@@ -21,7 +21,7 @@
 #include <asm/bmips.h>
 
 	.macro	BARRIER
-	.set	mips32
+	.set	MIPS_ISA_LEVEL_RAW
 	_ssnop
 	_ssnop
 	_ssnop
@@ -123,7 +123,7 @@ NESTED(bmips_reset_nmi_vec, PT_SIZE, sp)
 	jr	k0
 
 	RESTORE_ALL
-	.set	arch=r4000
+	.set	MIPS_ISA_ARCH_LEVEL_RAW
 	eret
 
 #ifdef CONFIG_SMP

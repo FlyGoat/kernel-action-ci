@@ -144,7 +144,7 @@ do {									\
 									\
 	__asm__ __volatile__(						\
 	"	.set	push					\n"	\
-	"	.set	mips64r2				\n"	\
+	"	.set	"MIPS_ISA_LEVEL"			\n"	\
 	"	dla	%0, 1f					\n"	\
 	"	jr.hb	%0					\n"	\
 	"	.set	pop					\n"	\

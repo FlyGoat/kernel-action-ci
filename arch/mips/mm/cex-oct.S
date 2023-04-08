@@ -19,7 +19,7 @@
 	LEAF(except_vec2_octeon)
 
 	.set	push
-	.set	mips64r2
+	.set	MIPS_ISA_LEVEL_RAW
 	.set	noreorder
 	.set	noat
 

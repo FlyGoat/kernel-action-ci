@@ -13,6 +13,7 @@
 #include <linux/errno.h>
 #include <asm/asm.h>
 #include <asm/asm-offsets.h>
+#include <asm/compiler.h>
 #include <asm/export.h>
 #include <asm/regdef.h>
 
@@ -282,7 +283,7 @@ EXPORT_SYMBOL(csum_partial)
 #if defined(CONFIG_CPU_MIPSR2) || defined(CONFIG_CPU_MIPSR5) || \
     defined(CONFIG_CPU_LOONGSON64)
 	.set	push
-	.set	arch=mips32r2
+	.set	MIPS_ISA_LEVEL_RAW
 	wsbh	v1, sum
 	movn	sum, v1, t7
 	.set	pop
@@ -707,7 +708,7 @@ EXPORT_SYMBOL(csum_partial)
 #if defined(CONFIG_CPU_MIPSR2) || defined(CONFIG_CPU_MIPSR5) || \
     defined(CONFIG_CPU_LOONGSON64)
 	.set	push
-	.set	arch=mips32r2
+	.set	MIPS_ISA_LEVEL_RAW
 	wsbh	v1, sum
 	movn	sum, v1, odd
 	.set	pop

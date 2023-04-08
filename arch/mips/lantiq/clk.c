@@ -177,7 +177,7 @@ static inline u32 get_counter_resolution(void)
 
 	__asm__ __volatile__(
 		".set	push\n"
-		".set	mips32r2\n"
+		".set	"MIPS_ISA_LEVEL"\n"
 		"rdhwr	%0, $3\n"
 		".set pop\n"
 		: "=&r" (res)
