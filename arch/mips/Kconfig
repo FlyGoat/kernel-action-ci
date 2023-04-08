@@ -1260,6 +1260,8 @@ menu "CPU selection"
 
 choice
 	prompt "CPU type"
+	default CPU_MIPS64_R2 if SYS_HAS_CPU_MIPS64_R2
+	default CPU_MIPS32_R2 if SYS_HAS_CPU_MIPS32_R2
 	default CPU_R4X00
 
 config CPU_LOONGSON64
@@ -2007,6 +2009,7 @@ menu "Kernel type"
 
 choice
 	prompt "Kernel code model"
+	default 64BIT
 	help
 	  You should only select this option if you have a workload that
 	  actually benefits from 64-bit processing or if your machine has
