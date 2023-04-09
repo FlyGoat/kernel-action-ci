@@ -915,25 +915,20 @@ static inline void rm7k_erratum31(void)
 	write_c0_taghi(0);
 
 	for (addr = INDEX_BASE; addr <= INDEX_BASE + 4096; addr += ic_lsize) {
-		__asm__ __volatile__ (
-			".set push\n\t"
-			".set noreorder\n\t"
-			".set "MIPS_ISA_LEVEL"\n\t"
-			"cache\t%1, 0(%0)\n\t"
-			"cache\t%1, 0x1000(%0)\n\t"
-			"cache\t%1, 0x2000(%0)\n\t"
-			"cache\t%1, 0x3000(%0)\n\t"
-			"cache\t%2, 0(%0)\n\t"
-			"cache\t%2, 0x1000(%0)\n\t"
-			"cache\t%2, 0x2000(%0)\n\t"
-			"cache\t%2, 0x3000(%0)\n\t"
-			"cache\t%1, 0(%0)\n\t"
-			"cache\t%1, 0x1000(%0)\n\t"
-			"cache\t%1, 0x2000(%0)\n\t"
-			"cache\t%1, 0x3000(%0)\n\t"
-			".set pop\n"
-			:
-			: "r" (addr), "i" (Index_Store_Tag_I), "i" (Fill_I));
+		cache_op(Index_Store_Tag_I, addr);
+		cache_op(Index_Store_Tag_I, addr + 0x1000);
+		cache_op(Index_Store_Tag_I, addr + 0x2000);
+		cache_op(Index_Store_Tag_I, addr + 0x3000);
+
+		cache_op(Fill_I, addr);
+		cache_op(Fill_I, addr + 0x1000);
+		cache_op(Fill_I, addr + 0x2000);
+		cache_op(Fill_I, addr + 0x3000);
+
+		cache_op(Index_Store_Tag_I, addr);
+		cache_op(Index_Store_Tag_I, addr + 0x1000);
+		cache_op(Index_Store_Tag_I, addr + 0x2000);
+		cache_op(Index_Store_Tag_I, addr + 0x3000);
 	}
 }
 
